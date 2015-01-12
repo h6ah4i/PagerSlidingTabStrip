@@ -40,6 +40,7 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.IllegalArgumentException;
 import java.util.Locale;
 
 import com.astuetz.pagerslidingtabstrip.R;
@@ -49,6 +50,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	public interface IconTabProvider {
 		public int getPageIconResId(int position);
 	}
+
+	public static final int INDICATOR_POSITION_TOP = 0;
+	public static final int INDICATOR_POSITION_BOTTOM = 1;
 
 	private LinearLayout.LayoutParams defaultTabLayoutParams;
 	private LinearLayout.LayoutParams expandedTabLayoutParams;
@@ -87,6 +91,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private ColorStateList tabTextColor = null;
 	private Typeface tabTypeface = null;
 	private int tabTypefaceStyle = Typeface.BOLD;
+	private int indicatorPosition = INDICATOR_POSITION_BOTTOM;
 
 	private int lastScrollX = 0;
 
@@ -144,6 +149,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		shouldExpand = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsShouldExpand, shouldExpand);
 		scrollOffset = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsScrollOffset, scrollOffset);
 		textAllCaps = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsTextAllCaps, textAllCaps);
+		indicatorPosition = getIndicatorPositionFromTypedArray(a, indicatorPosition);
 
 		a.recycle();
 
@@ -311,26 +317,33 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		final int height = getHeight();
 
 		// draw indicator line
+		if (!isTransparent(indicatorColor) && indicatorHeight > 0) {
+			// default: line below current tab
+			final View currentTab = tabsContainer.getChildAt(currentPosition);
+			float lineLeft = currentTab.getLeft();
+			float lineRight = currentTab.getRight();
+			float lineTop = 0;
 
-		rectPaint.setColor(indicatorColor);
+			// if there is an offset, start interpolating left and right coordinates between current and next tab
+			if (currentPositionOffset > 0f && currentPosition < tabCount - 1) {
 
-		// default: line below current tab
-		View currentTab = tabsContainer.getChildAt(currentPosition);
-		float lineLeft = currentTab.getLeft();
-		float lineRight = currentTab.getRight();
+				final View nextTab = tabsContainer.getChildAt(currentPosition + 1);
+				final float nextTabLeft = nextTab.getLeft();
+				final float nextTabRight = nextTab.getRight();
 
-		// if there is an offset, start interpolating left and right coordinates between current and next tab
-		if (currentPositionOffset > 0f && currentPosition < tabCount - 1) {
+				lineLeft = (currentPositionOffset * nextTabLeft + (1f - currentPositionOffset) * lineLeft);
+				lineRight = (currentPositionOffset * nextTabRight + (1f - currentPositionOffset) * lineRight);
+			}
 
-			View nextTab = tabsContainer.getChildAt(currentPosition + 1);
-			final float nextTabLeft = nextTab.getLeft();
-			final float nextTabRight = nextTab.getRight();
+			if (indicatorPosition == INDICATOR_POSITION_BOTTOM) {
+				lineTop = height - indicatorHeight;
+			} else if (indicatorPosition == INDICATOR_POSITION_TOP) {
+				lineTop = 0;
+			}
 
-			lineLeft = (currentPositionOffset * nextTabLeft + (1f - currentPositionOffset) * lineLeft);
-			lineRight = (currentPositionOffset * nextTabRight + (1f - currentPositionOffset) * lineRight);
+			rectPaint.setColor(indicatorColor);
+			canvas.drawRect(lineLeft, lineTop, lineRight, lineTop + indicatorHeight, rectPaint);
 		}
-
-		canvas.drawRect(lineLeft, height - indicatorHeight, lineRight, height, rectPaint);
 
 		// draw underline
 		if (!isTransparent(underlineColor) && underlineHeight > 0) {
@@ -565,8 +578,34 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		return tabPadding;
 	}
 
+	public void setIndicatorPosition(int indicatorPosition) {
+		if (!isValidIndicatorPosition(indicatorPosition)) {
+			throw new IllegalArgumentException(
+				"Invalid indicator position specified: " + indicatorPosition);
+		}
+		this.indicatorPosition = indicatorPosition;
+	}
+
+	public int getIndicatorPosition() {
+		return indicatorPosition;
+	}
+
 	private static boolean isTransparent(int color) {
 		return (color & 0xFF000000) == 0;
+	}
+
+	private static boolean isValidIndicatorPosition(int indicatorPosition) {
+		return (indicatorPosition == INDICATOR_POSITION_TOP ||
+			indicatorPosition == INDICATOR_POSITION_BOTTOM);
+	}
+
+	private static int getIndicatorPositionFromTypedArray(TypedArray a, int defValue) {
+		final int value = a.getInteger(R.styleable.PagerSlidingTabStrip_pstsIndicatorPosition, Integer.MIN_VALUE);
+		if (isValidIndicatorPosition(value)) {
+			return value;
+		} else {
+			return defValue;
+		}
 	}
 
 	@Override
