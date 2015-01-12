@@ -76,6 +76,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private int indicatorColor = 0xFF666666;
 	private int underlineColor = 0x1A000000;
+	private int overlineColor = 0x1A000000;
 	private int dividerColor = 0x1A000000;
 
 	private boolean shouldExpand = false;
@@ -84,6 +85,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int scrollOffset = 52;
 	private int indicatorHeight = 8;
 	private int underlineHeight = 2;
+	private int overlineHeight = 0;
 	private int dividerPadding = 12;
 	private int tabPadding = 24;
 	private int dividerWidth = 1;
@@ -123,6 +125,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		scrollOffset = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, scrollOffset, dm);
 		indicatorHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, indicatorHeight, dm);
 		underlineHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, underlineHeight, dm);
+		overlineHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, overlineHeight, dm);
 		dividerPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dividerPadding, dm);
 		tabPadding = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, tabPadding, dm);
 		dividerWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dividerWidth, dm);
@@ -143,9 +146,11 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		indicatorColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsIndicatorColor, indicatorColor);
 		underlineColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsUnderlineColor, underlineColor);
+		overlineColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsOverlineColor, overlineColor);
 		dividerColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsDividerColor, dividerColor);
 		indicatorHeight = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsIndicatorHeight, indicatorHeight);
 		underlineHeight = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsUnderlineHeight, underlineHeight);
+		overlineHeight = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsOverlineHeight, overlineHeight);
 		dividerPadding = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsDividerPadding, dividerPadding);
 		tabPadding = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsTabPaddingLeftRight, tabPadding);
 		tabBackgroundResId = a.getResourceId(R.styleable.PagerSlidingTabStrip_pstsTabBackground, tabBackgroundResId);
@@ -341,16 +346,24 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		canvas.drawRect(lineLeft, height - indicatorHeight, lineRight, height, rectPaint);
 
 		// draw underline
+		if (!isTransparent(underlineColor) && underlineHeight > 0) {
+			rectPaint.setColor(underlineColor);
+			canvas.drawRect(0, height - underlineHeight, tabsContainer.getWidth(), height, rectPaint);
+		}
 
-		rectPaint.setColor(underlineColor);
-		canvas.drawRect(0, height - underlineHeight, tabsContainer.getWidth(), height, rectPaint);
+		// draw overline
+		if (!isTransparent(overlineColor) && overlineHeight > 0) {
+			rectPaint.setColor(overlineColor);
+			canvas.drawRect(0, 0, tabsContainer.getWidth(), overlineHeight, rectPaint);
+		}
 
 		// draw divider
-
-		dividerPaint.setColor(dividerColor);
-		for (int i = 0; i < tabCount - 1; i++) {
-			View tab = tabsContainer.getChildAt(i);
-			canvas.drawLine(tab.getRight(), dividerPadding, tab.getRight(), height - dividerPadding, dividerPaint);
+		if (!isTransparent(dividerColor)) {
+			dividerPaint.setColor(dividerColor);
+			for (int i = 0; i < tabCount - 1; i++) {
+				View tab = tabsContainer.getChildAt(i);
+				canvas.drawLine(tab.getRight(), dividerPadding, tab.getRight(), height - dividerPadding, dividerPaint);
+			}
 		}
 	}
 
@@ -437,6 +450,20 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		return underlineColor;
 	}
 
+	public void setOverineColor(int overlineColor) {
+		this.overlineColor = overlineColor;
+		invalidate();
+	}
+
+	public void setOverlineColorResource(int resId) {
+		this.overlineColor = getResources().getColor(resId);
+		invalidate();
+	}
+
+	public int getOverlineColor() {
+		return overlineColor;
+	}
+
 	public void setDividerColor(int dividerColor) {
 		this.dividerColor = dividerColor;
 		invalidate();
@@ -458,6 +485,16 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	public int getUnderlineHeight() {
 		return underlineHeight;
+	}
+
+
+	public void setOverlineHeight(int overlineHeightPx) {
+		this.overlineHeight = overlineHeightPx;
+		invalidate();
+	}
+
+	public int getOverlineHeight() {
+		return overlineHeight;
 	}
 
 	public void setDividerPadding(int dividerPaddingPx) {
@@ -539,6 +576,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	public int getTabPaddingLeftRight() {
 		return tabPadding;
+	}
+
+	private static boolean isTransparent(int color) {
+		return (color & 0xFF000000) == 0;
 	}
 
 	@Override
