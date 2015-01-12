@@ -22,4 +22,8 @@ android {
     }
 }
 
-apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+// Check the "GROUP" property is available for gradle-mvn-push.gradle script
+if (project.hasProperty("GROUP")) {
+	apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+}
+
