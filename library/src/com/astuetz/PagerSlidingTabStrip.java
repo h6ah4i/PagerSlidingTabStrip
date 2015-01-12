@@ -50,13 +50,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		public int getPageIconResId(int position);
 	}
 
-	// @formatter:off
-	private static final int[] ATTRS = new int[] {
-		android.R.attr.textSize,
-		android.R.attr.textColor
-    };
-	// @formatter:on
-
 	private LinearLayout.LayoutParams defaultTabLayoutParams;
 	private LinearLayout.LayoutParams expandedTabLayoutParams;
 
@@ -131,19 +124,13 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		dividerWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dividerWidth, dm);
 		tabTextSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, tabTextSize, dm);
 
-		// get system attrs (android:textSize and android:textColor)
+		TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.PagerSlidingTabStrip);
 
-		TypedArray a = context.obtainStyledAttributes(attrs, ATTRS);
-
-		tabTextSize = a.getDimensionPixelSize(0, tabTextSize);
-		tabTextColor = a.getColorStateList(1);
-
-		a.recycle();
+		// get system attrs
+		tabTextSize = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_android_textSize, tabTextSize);
+		tabTextColor = a.getColorStateList(R.styleable.PagerSlidingTabStrip_android_textColor);
 
 		// get custom attrs
-
-		a = context.obtainStyledAttributes(attrs, R.styleable.PagerSlidingTabStrip);
-
 		indicatorColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsIndicatorColor, indicatorColor);
 		underlineColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsUnderlineColor, underlineColor);
 		overlineColor = a.getColor(R.styleable.PagerSlidingTabStrip_pstsOverlineColor, overlineColor);

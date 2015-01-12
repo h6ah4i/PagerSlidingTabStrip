@@ -2,6 +2,10 @@
 <resources>
 
     <declare-styleable name="PagerSlidingTabStrip">
+        <!-- System attributes -->
+        <attr name="android:textSize" />
+        <attr name="android:textColor" />
+        <!-- Custom attributes -->
         <attr name="pstsIndicatorColor" format="color" />
         <attr name="pstsUnderlineColor" format="color" />
         <attr name="pstsOverlineColor" format="color" />
