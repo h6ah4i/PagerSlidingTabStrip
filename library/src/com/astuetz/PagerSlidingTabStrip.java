@@ -80,6 +80,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private boolean textAllCaps = true;
 
 	private int scrollOffset = 52;
+	private boolean scrollToCenter = false;
 	private int indicatorHeight = 8;
 	private int underlineHeight = 2;
 	private int overlineHeight = 0;
@@ -148,6 +149,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		tabBackgroundResId = a.getResourceId(R.styleable.PagerSlidingTabStrip_pstsTabBackground, tabBackgroundResId);
 		shouldExpand = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsShouldExpand, shouldExpand);
 		scrollOffset = a.getDimensionPixelSize(R.styleable.PagerSlidingTabStrip_pstsScrollOffset, scrollOffset);
+		scrollToCenter = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsScrollToCenter, scrollToCenter);
 		textAllCaps = a.getBoolean(R.styleable.PagerSlidingTabStrip_pstsTextAllCaps, textAllCaps);
 		indicatorPosition = getIndicatorPositionFromTypedArray(a, indicatorPosition);
 
@@ -293,10 +295,15 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			return;
 		}
 
-		int newScrollX = tabsContainer.getChildAt(position).getLeft() + offset;
+		final View child = tabsContainer.getChildAt(position);
+		int newScrollX = child.getLeft() + offset;
 
 		if (position > 0 || offset > 0) {
-			newScrollX -= scrollOffset;
+			if (scrollToCenter) {
+				newScrollX -= (getWidth() - child.getWidth()) / 2;
+			} else {
+				newScrollX -= scrollOffset;
+			}
 		}
 
 		if (newScrollX != lastScrollX) {
