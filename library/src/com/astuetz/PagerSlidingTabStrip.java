@@ -95,6 +95,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int indicatorPosition = INDICATOR_POSITION_BOTTOM;
 
 	private int lastScrollX = 0;
+	private boolean isScrollingByDrag = false;
 
 	private int tabBackgroundResId = R.drawable.background_tab;
 
@@ -219,7 +220,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 				}
 
 				currentPosition = pager.getCurrentItem();
-				scrollToChild(currentPosition, 0);
+				scrollToChild(currentPosition, 0, false);
 				updateSelection(currentPosition);
 			}
 		});
@@ -286,31 +287,40 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 				}
 			}
 		}
-
 	}
 
-	private void scrollToChild(int position, int offset) {
-
+	private void scrollToChild(int position, float positionOffset, boolean smoothly) {
 		if (tabCount == 0) {
 			return;
 		}
 
-		final View child = tabsContainer.getChildAt(position);
-		int newScrollX = child.getLeft() + offset;
+		final View currentTab = tabsContainer.getChildAt(position);
+		int newScrollX = currentTab.getLeft() + (int)(currentTab.getWidth() * positionOffset);
 
-		if (position > 0 || offset > 0) {
-			if (scrollToCenter) {
-				newScrollX -= (getWidth() - child.getWidth()) / 2;
-			} else {
-				newScrollX -= scrollOffset;
-			}
+		if (scrollToCenter) {
+			final int nextPosition = position + 1;
+			final View nextTab = (nextPosition < tabCount) ? tabsContainer.getChildAt(nextPosition) : null;
+			final int parentWidth = getWidth();
+			final int width1 = currentTab.getWidth();
+			final int width2 = (nextTab != null) ? nextTab.getWidth() : width1;
+			final float interpolatedWidth = lerp((float) width1, (float) width2, positionOffset);
+
+			newScrollX -= (int)((parentWidth - interpolatedWidth) * 0.5f);
+		} else {
+			newScrollX -= scrollOffset;
 		}
+
+		newScrollX = Math.max(0, newScrollX);
 
 		if (newScrollX != lastScrollX) {
 			lastScrollX = newScrollX;
-			scrollTo(newScrollX, 0);
-		}
 
+            if (smoothly) {
+                smoothScrollTo(newScrollX, 0);
+            } else {
+                scrollTo(newScrollX, 0);
+            }
+		}
 	}
 
 	@Override
@@ -325,31 +335,38 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		// draw indicator line
 		if (!isTransparent(indicatorColor) && indicatorHeight > 0) {
-			// default: line below current tab
-			final View currentTab = tabsContainer.getChildAt(currentPosition);
-			float lineLeft = currentTab.getLeft();
-			float lineRight = currentTab.getRight();
-			float lineTop = 0;
+			float left;
+			float right;
+			float top = 0;
 
-			// if there is an offset, start interpolating left and right coordinates between current and next tab
-			if (currentPositionOffset > 0f && currentPosition < tabCount - 1) {
+			if (!isScrollingByDrag) {
+				// default: line below selected tab
+				final int selectedPosition = pager.getCurrentItem();
+				final View currentTab = tabsContainer.getChildAt(selectedPosition);
+				left = currentTab.getLeft();
+				right = currentTab.getRight();
+			} else {
+				// if there is an offset, start interpolating left and right coordinates between current and next tab
+				final int nextPosition = currentPosition + 1;
+				final View currentTab = tabsContainer.getChildAt(currentPosition);
+				final View nextTab = (nextPosition < tabCount) ? tabsContainer.getChildAt(nextPosition) : null;
+				final float currentTabLeft = currentTab.getLeft();
+				final float currentTabRight = currentTab.getRight();
+				final float nextTabLeft = (nextTab != null) ? nextTab.getLeft() : currentTabLeft;
+				final float nextTabRight = (nextTab != null) ? nextTab.getRight() : currentTabRight;
 
-				final View nextTab = tabsContainer.getChildAt(currentPosition + 1);
-				final float nextTabLeft = nextTab.getLeft();
-				final float nextTabRight = nextTab.getRight();
-
-				lineLeft = (currentPositionOffset * nextTabLeft + (1f - currentPositionOffset) * lineLeft);
-				lineRight = (currentPositionOffset * nextTabRight + (1f - currentPositionOffset) * lineRight);
+				left = (int) lerp((float) currentTabLeft, (float) nextTabLeft, currentPositionOffset);
+				right = (int) lerp((float) currentTabRight, (float) nextTabRight, currentPositionOffset);
 			}
 
 			if (indicatorPosition == INDICATOR_POSITION_BOTTOM) {
-				lineTop = height - indicatorHeight;
+				top = height - indicatorHeight;
 			} else if (indicatorPosition == INDICATOR_POSITION_TOP) {
-				lineTop = 0;
+				top = 0;
 			}
 
 			rectPaint.setColor(indicatorColor);
-			canvas.drawRect(lineLeft, lineTop, lineRight, lineTop + indicatorHeight, rectPaint);
+			canvas.drawRect(left, top, right, top + indicatorHeight, rectPaint);
 		}
 
 		// draw underline
@@ -382,7 +399,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			currentPosition = position;
 			currentPositionOffset = positionOffset;
 
-			scrollToChild(position, (int) (positionOffset * tabsContainer.getChildAt(position).getWidth()));
+			if (isScrollingByDrag) {
+				scrollToChild(position, positionOffset, false);
+			}
 
 			invalidate();
 
@@ -393,8 +412,17 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		@Override
 		public void onPageScrollStateChanged(int state) {
-			if (state == ViewPager.SCROLL_STATE_IDLE) {
-				scrollToChild(pager.getCurrentItem(), 0);
+
+			switch (state) {
+				case ViewPager.SCROLL_STATE_IDLE:
+					scrollToChild(pager.getCurrentItem(), 0, false);
+					isScrollingByDrag = false;
+					break;
+				case ViewPager.SCROLL_STATE_DRAGGING:
+					isScrollingByDrag = true;
+					break;
+				case ViewPager.SCROLL_STATE_SETTLING:
+					break;
 			}
 
 			if (delegatePageListener != null) {
@@ -404,6 +432,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		@Override
 		public void onPageSelected(int position) {
+			if (!isScrollingByDrag) {
+				scrollToChild(position, 0, true);
+			}
+
 			updateSelection(position);
 			
 			if (delegatePageListener != null) {
@@ -613,6 +645,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		} else {
 			return defValue;
 		}
+	}
+
+	private static float lerp(float a, float b, float proportion) {
+		return (a * (1.0f - proportion)) + (b * proportion);
 	}
 
 	@Override
