@@ -94,7 +94,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int tabTypefaceStyle = Typeface.BOLD;
 	private int indicatorPosition = INDICATOR_POSITION_BOTTOM;
 
-	private int lastScrollX = 0;
+	private int lastScrollX = -1;
 	private boolean isScrollingByDrag = false;
 
 	private int tabBackgroundResId = R.drawable.background_tab;
@@ -417,6 +417,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 				case ViewPager.SCROLL_STATE_IDLE:
 					scrollToChild(pager.getCurrentItem(), 0, false);
 					isScrollingByDrag = false;
+					lastScrollX = -1;
 					break;
 				case ViewPager.SCROLL_STATE_DRAGGING:
 					isScrollingByDrag = true;
