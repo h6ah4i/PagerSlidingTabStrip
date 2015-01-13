@@ -1,7 +1,7 @@
 # Android PagerSlidingTabStrip
 
-Interactive paging indicator widget, compatible with the `ViewPager` from the 
-Android Support Library. 
+Interactive paging indicator widget, compatible with the `ViewPager` from the
+Android Support Library.
 
 Try out the sample application [on the Play Store](https://play.google.com/store/apps/details?id=com.astuetz.viewpager.extensions.sample).
 
@@ -12,7 +12,7 @@ Try out the sample application [on the Play Store](https://play.google.com/store
 *For a working implementation of this project see the `sample/` folder.*
 
   1. Include the library as local library project or add the dependency in your build.gradle.
-        
+
         dependencies {
             compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
         }
@@ -31,7 +31,7 @@ Try out the sample application [on the Play Store](https://play.google.com/store
          // Initialize the ViewPager and set an adapter
          ViewPager pager = (ViewPager) findViewById(R.id.pager);
          pager.setAdapter(new TestAdapter(getSupportFragmentManager()));
-         
+
          // Bind the tabs to the ViewPager
          PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.tabs);
          tabs.setViewPager(pager);
@@ -49,15 +49,19 @@ your brand:
 
  * `pstsIndicatorColor` Color of the sliding indicator
  * `pstsUnderlineColor` Color of the full-width line on the bottom of the view
+ * `pstsOverlineColor` Color of the full-width line on the top of the view
  * `pstsDividerColor` Color of the dividers between tabs
  * `pstsIndicatorHeight`Height of the sliding indicator
  * `pstsUnderlineHeight` Height of the full-width line on the bottom of the view
+ * `pstsOverlineHeight` Height of the full-width line on the top of the view
  * `pstsDividerPadding` Top and bottom padding of the dividers
  * `pstsTabPaddingLeftRight` Left and right padding of each tab
  * `pstsScrollOffset` Scroll offset of the selected tab
+ * `pstsScrollToCenter` If set to true, scrolled to the selected tab is place at the center of the view (This attribute overwrites 'pstsScrollOffset')
  * `pstsTabBackground` Background drawable of each tab, should be a StateListDrawable
  * `pstsShouldExpand` If set to true, each tab is given the same weight, default false
  * `pstsTextAllCaps` If true, all tab titles will be upper case, default true
+ * `pstsIndicatorPosition` Position of the indicator (`top` or `bottom`), default `bottom`
 
 *All attributes have their respective getters and setters to change them at runtime*
 
@@ -75,6 +79,7 @@ your brand:
 # Developed By
 
  * Andreas Stuetz - <andreas.stuetz@gmail.com>
+ * Haruki Hasegawa - <h6a.h4i.0@gmail.com>
 
 
 ### Credits
@@ -85,6 +90,7 @@ your brand:
 # License
 
     Copyright 2013 Andreas Stuetz
+    Copyright 2015 Haruki Hasegawa
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
