@@ -100,6 +100,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private int tabBackgroundResId = R.drawable.background_tab;
 
 	private Locale locale;
+	private boolean layoutFinished;
 
 	public PagerSlidingTabStrip(Context context) {
 		this(context, null);
@@ -219,6 +220,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 					getViewTreeObserver().removeOnGlobalLayoutListener(this);
 				}
 
+				layoutFinished = true;
 				currentPosition = pager.getCurrentItem();
 				scrollToChild(currentPosition, 0, false);
 				updateSelection(currentPosition);
@@ -315,7 +317,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		if (newScrollX != lastScrollX) {
 			lastScrollX = newScrollX;
 
-			if (smoothly) {
+			if (smoothly && layoutFinished) {
 				smoothScrollTo(newScrollX, 0);
 			} else {
 				scrollTo(newScrollX, 0);
