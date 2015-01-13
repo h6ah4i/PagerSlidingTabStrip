@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Andreas Stuetz <andreas.stuetz@gmail.com>
+ * Copyright (C) 2015 Haruki Hasegawa <h6a.h4i.0@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,6 @@
 
 package com.astuetz;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
@@ -41,6 +41,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.lang.IllegalArgumentException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.astuetz.pagerslidingtabstrip.R;
@@ -101,6 +103,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private Locale locale;
 	private boolean layoutFinished;
+	private List<String> origTexts;
 
 	public PagerSlidingTabStrip(Context context) {
 		this(context, null);
@@ -171,6 +174,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		if (locale == null) {
 			locale = getResources().getConfiguration().locale;
 		}
+
+		if (!TextViewCompat.supportsSetAllCaps()) {
+			origTexts = new ArrayList<String>();
+		}
 	}
 
 	public void setViewPager(ViewPager pager) {
@@ -193,6 +200,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		tabsContainer.removeAllViews();
 
+		if (!TextViewCompat.supportsSetAllCaps()) {
+			origTexts.clear();
+		}
+
 		tabCount = pager.getAdapter().getCount();
 
 		for (int i = 0; i < tabCount; i++) {
@@ -208,17 +219,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		updateTabStyles();
 
 		getViewTreeObserver().addOnGlobalLayoutListener(new OnGlobalLayoutListener() {
-
-			@SuppressWarnings("deprecation")
-			@SuppressLint("NewApi")
 			@Override
 			public void onGlobalLayout() {
-
-				if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-					getViewTreeObserver().removeGlobalOnLayoutListener(this);
-				} else {
-					getViewTreeObserver().removeOnGlobalLayoutListener(this);
-				}
+				ViewTreeObserverCompat.removeOnGlobalLayoutListener(getViewTreeObserver(), this);
 
 				layoutFinished = true;
 				currentPosition = pager.getCurrentItem();
@@ -259,6 +262,11 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		tab.setPadding(tabPadding, 0, tabPadding, 0);
 		tabsContainer.addView(tab, position, shouldExpand ? expandedTabLayoutParams : defaultTabLayoutParams);
+
+		if (!TextViewCompat.supportsSetAllCaps()) {
+			final String text = (tab instanceof TextView) ? ((TextView) tab).getText().toString() : null;
+			origTexts.add(text);
+		}
 	}
 
 	private void updateTabStyles() {
@@ -280,12 +288,11 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 				
 				// setAllCaps() is only available from API 14, so the upper case is made manually if we are on a
 				// pre-ICS-build
-				if (textAllCaps) {
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-						tab.setAllCaps(true);
-					} else {
-						tab.setText(tab.getText().toString().toUpperCase(locale));
-					}
+				if (TextViewCompat.supportsSetAllCaps()) {
+					TextViewCompat.setAllCaps(tab, textAllCaps);
+				} else {
+					final String text = origTexts.get(i);
+					tab.setText(textAllCaps ? text.toUpperCase(locale) : text);
 				}
 			}
 		}
@@ -572,6 +579,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	public void setAllCaps(boolean textAllCaps) {
 		this.textAllCaps = textAllCaps;
+		updateTabStyles();
 	}
 
 	public void setTextSize(int textSizePx) {
