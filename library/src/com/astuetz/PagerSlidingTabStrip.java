@@ -315,11 +315,11 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		if (newScrollX != lastScrollX) {
 			lastScrollX = newScrollX;
 
-            if (smoothly) {
-                smoothScrollTo(newScrollX, 0);
-            } else {
-                scrollTo(newScrollX, 0);
-            }
+			if (smoothly) {
+				smoothScrollTo(newScrollX, 0);
+			} else {
+				scrollTo(newScrollX, 0);
+			}
 		}
 	}
 
