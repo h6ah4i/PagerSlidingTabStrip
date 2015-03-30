@@ -24,7 +24,6 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Typeface;
-import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
@@ -38,19 +37,15 @@ import android.view.ViewTreeObserver.OnGlobalLayoutListener;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import java.lang.IllegalArgumentException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 import com.astuetz.pagerslidingtabstrip.R;
+
+import java.util.Locale;
 
 public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	public interface IconTabProvider {
-		public int getPageIconResId(int position);
+		int getPageIconResId(int position);
 	}
 
 	public static final int INDICATOR_POSITION_TOP = 0;
@@ -103,7 +98,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private Locale locale;
 	private boolean layoutFinished;
-	private List<String> origTexts;
 
 	public PagerSlidingTabStrip(Context context) {
 		this(context, null);
@@ -174,10 +168,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		if (locale == null) {
 			locale = getResources().getConfiguration().locale;
 		}
-
-		if (!TextViewCompat.supportsSetAllCaps()) {
-			origTexts = new ArrayList<String>();
-		}
 	}
 
 	public void setViewPager(ViewPager pager) {
@@ -199,10 +189,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	public void notifyDataSetChanged() {
 
 		tabsContainer.removeAllViews();
-
-		if (!TextViewCompat.supportsSetAllCaps()) {
-			origTexts.clear();
-		}
 
 		tabCount = pager.getAdapter().getCount();
 
@@ -234,10 +220,9 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private void addTextTab(final int position, String title) {
 
-		TextView tab = new TextView(getContext());
+		TabTextView tab = new TabTextView(getContext());
 		tab.setText(title);
 		tab.setGravity(Gravity.CENTER);
-		tab.setSingleLine();
 
 		addTab(position, tab);
 	}
@@ -262,11 +247,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 		tab.setPadding(tabPadding, 0, tabPadding, 0);
 		tabsContainer.addView(tab, position, shouldExpand ? expandedTabLayoutParams : defaultTabLayoutParams);
-
-		if (!TextViewCompat.supportsSetAllCaps()) {
-			final String text = (tab instanceof TextView) ? ((TextView) tab).getText().toString() : null;
-			origTexts.add(text);
-		}
 	}
 
 	private void updateTabStyles() {
@@ -277,23 +257,16 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 			v.setBackgroundResource(tabBackgroundResId);
 
-			if (v instanceof TextView) {
+			if (v instanceof TabTextView) {
 
-				TextView tab = (TextView) v;
+				TabTextView tab = (TabTextView) v;
 				tab.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabTextSize);
 				tab.setTypeface(tabTypeface, tabTypefaceStyle);
 				if (tabTextColor != null) {
 					tab.setTextColor(tabTextColor);
 				}
-				
-				// setAllCaps() is only available from API 14, so the upper case is made manually if we are on a
-				// pre-ICS-build
-				if (TextViewCompat.supportsSetAllCaps()) {
-					TextViewCompat.setAllCaps(tab, textAllCaps);
-				} else {
-					final String text = origTexts.get(i);
-					tab.setText(textAllCaps ? text.toUpperCase(locale) : text);
-				}
+
+				tab.setAllCaps(textAllCaps);
 			}
 		}
 	}
