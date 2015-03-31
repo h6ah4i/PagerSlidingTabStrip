@@ -58,11 +58,6 @@ public class TabTextView extends View {
         updateTextBounds();
     }
 
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-    }
-
     public CharSequence getText() {
         return mText;
     }
@@ -134,6 +129,10 @@ public class TabTextView extends View {
     protected void drawableStateChanged() {
         super.drawableStateChanged();
 
+        applyCurrentDrawableStateTextColor();
+    }
+
+    private void applyCurrentDrawableStateTextColor() {
         if (mTextColorStateList != null) {
             mCurrentTextColor = mTextColorStateList.getColorForState(getDrawableState(), 0);
         }
@@ -353,6 +352,7 @@ public class TabTextView extends View {
             return;
         }
         mTextColorStateList = textColor;
+        applyCurrentDrawableStateTextColor();
         invalidate();
     }
 }
