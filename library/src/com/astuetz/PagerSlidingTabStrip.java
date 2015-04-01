@@ -48,14 +48,26 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		int getPageIconResId(int position);
 	}
 
+	public interface OnTabClickListener {
+		boolean onClick(View v, int position);
+	}
+
 	public static final int INDICATOR_POSITION_TOP = 0;
 	public static final int INDICATOR_POSITION_BOTTOM = 1;
+
+	private OnClickListener mTabOnClickListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			handleTabOnClick(v);
+		}
+	};
 
 	private LinearLayout.LayoutParams defaultTabLayoutParams;
 	private LinearLayout.LayoutParams expandedTabLayoutParams;
 
 	private final PageListener pageListener = new PageListener();
 	private OnPageChangeListener delegatePageListener;
+	private OnTabClickListener tabClickListener;
 
 	private LinearLayout tabsContainer;
 	private ViewPager pager;
@@ -186,6 +198,10 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		this.delegatePageListener = listener;
 	}
 
+	public void setOnTabClickListener(OnTabClickListener listener) {
+		this.tabClickListener = listener;
+	}
+
 	public void notifyDataSetChanged() {
 
 		tabsContainer.removeAllViews();
@@ -238,12 +254,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 
 	private void addTab(final int position, View tab) {
 		tab.setFocusable(true);
-		tab.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				pager.setCurrentItem(position);
-			}
-		});
+		tab.setOnClickListener(mTabOnClickListener);
 
 		tab.setPadding(tabPadding, 0, tabPadding, 0);
 		tabsContainer.addView(tab, position, shouldExpand ? expandedTabLayoutParams : defaultTabLayoutParams);
@@ -649,6 +660,25 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		SavedState savedState = new SavedState(superState);
 		savedState.currentPosition = currentPosition;
 		return savedState;
+	}
+
+	private void handleTabOnClick(View v) {
+		int n = tabsContainer.getChildCount();
+
+		for (int i = 0; i < n; i++) {
+			if (v == tabsContainer.getChildAt(i)) {
+				if (tabClickListener != null) {
+					if (tabClickListener.onClick(v, i)) {
+						// handled
+						break;
+					}
+				}
+
+				// set current page
+				pager.setCurrentItem(i);
+				break;
+			}
+		}
 	}
 
 	static class SavedState extends BaseSavedState {
