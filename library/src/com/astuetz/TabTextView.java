@@ -179,20 +179,10 @@ public class TabTextView extends View {
 
     private void updateTextBounds() {
         final Paint.FontMetricsInt fm = getFontMetricsInt();
+        final String text = mRenderText;
+
         mMeasuredLineHeight = fm.descent - fm.ascent + fm.leading;
-
-        int measuredWidth = getMeasuredWidth();
-
-        if (measuredWidth > 0) {
-            measuredWidth -= getPaddingLeft() + getPaddingRight();
-        }
-
-        if (measuredWidth <= 0) {
-            mMeasuredTextWidth = 0;
-        } else {
-            final String text = mRenderText;
-            mMeasuredTextWidth = (int) Math.ceil(mTextPaint.measureText(text));
-        }
+        mMeasuredTextWidth = (int) Math.ceil(mTextPaint.measureText(text));
     }
 
     public void setGravity(int gravity) {
@@ -203,6 +193,8 @@ public class TabTextView extends View {
     }
 
     public void setText(CharSequence text) {
+        text = (text == null) ? "" : text;
+
         if (mText.equals(text))
             return;
 
