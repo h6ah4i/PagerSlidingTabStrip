@@ -256,7 +256,6 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 		tab.setFocusable(true);
 		tab.setOnClickListener(mTabOnClickListener);
 
-		tab.setPadding(tabPadding, 0, tabPadding, 0);
 		tabsContainer.addView(tab, position, shouldExpand ? expandedTabLayoutParams : defaultTabLayoutParams);
 	}
 
@@ -267,6 +266,7 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 			View v = tabsContainer.getChildAt(i);
 
 			v.setBackgroundResource(tabBackgroundResId);
+			v.setPadding(tabPadding, 0, tabPadding, 0);
 
 			if (v instanceof TabTextView) {
 
